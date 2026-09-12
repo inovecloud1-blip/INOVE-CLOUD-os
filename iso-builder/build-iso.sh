@@ -265,7 +265,7 @@ if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
   exec /usr/local/bin/inovecloud-kiosk
 fi
 BASH_PROFILE
-chown inove:inove "${ROOTFS_DIR}/home/inove/.bash_profile"
+chroot "${ROOTFS_DIR}" chown inove:inove /home/inove/.bash_profile
 
 # Habilitar o serviço InoveCloud no boot
 chroot "${ROOTFS_DIR}" systemctl enable inovecloud.service
