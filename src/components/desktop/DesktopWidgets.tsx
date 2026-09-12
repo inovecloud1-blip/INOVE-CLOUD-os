@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { AppId, SystemStats, CustomWebShortcut, DesktopWidgetsConfig, DesktopWidgetId, DEFAULT_WIDGET_ORDER } from '../../types';
 import { LAUNCHER_APPS, DEFAULT_DESKTOP_PINNED } from '../../data/launcherApps';
+import { AppIcon } from './AppIcon';
 
 interface DesktopWidgetsProps {
   stats: SystemStats;
@@ -1029,11 +1030,11 @@ export const DesktopWidgets: React.FC<DesktopWidgetsProps> = ({
                                 </button>
                               )}
 
-                              {/* App Squircle Icon (Umbrel style) */}
-                              <div
-                                className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${app.gradient} flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition`}
-                              >
-                                {renderDesktopIcon(app.iconName, 'w-5 h-5 text-white')}
+                              {/* App Squircle Icon with bounce and smooth hover transition */}
+                              <div className="mb-2 transition-all duration-300 transform group-hover:-translate-y-2 group-hover:scale-110 group-active:scale-95 group-active:translate-y-0 group-hover:drop-shadow-[0_12px_20px_rgba(56,189,248,0.35)]">
+                                <div className="transition-transform duration-300 ease-out group-hover:animate-bounce-short">
+                                  <AppIcon appId={app.id} size="md" className="w-11 h-11" />
+                                </div>
                               </div>
 
                               {/* Name and Tag */}
@@ -1174,7 +1175,9 @@ export const DesktopWidgets: React.FC<DesktopWidgetsProps> = ({
                               title={`${shortcut.name} (Arraste para reposicionar)`}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl drop-shadow">{shortcut.icon}</span>
+                                <span className="text-2xl drop-shadow transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1 group-hover:animate-bounce-short">
+                                  {shortcut.icon}
+                                </span>
                                 <button
                                   onClick={(e) => handleDeleteShortcut(shortcut.id, e)}
                                   className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 text-slate-400 hover:text-red-300 rounded-lg transition"

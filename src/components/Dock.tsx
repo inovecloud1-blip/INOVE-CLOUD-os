@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { AppId } from '../types';
 import { DEFAULT_DOCK_PINNED } from '../data/launcherApps';
+import { AppIcon } from './desktop/AppIcon';
 
 interface DockItemConfig {
   id: AppId;
@@ -478,27 +479,16 @@ export const Dock: React.FC<DockProps> = ({
                   <button
                     onClick={() => handleAppClick(item.id)}
                     onContextMenu={(e) => handleContextMenu(e, item.id)}
-                    className={`relative w-12 h-12 rounded-[16px] bg-gradient-to-br ${item.gradient} p-2 flex items-center justify-center border border-white/30 cursor-pointer overflow-hidden active:scale-95 transition-shadow duration-200`}
-                    style={{
-                      boxShadow: isActive
-                        ? `0 12px 28px -4px ${item.glowColor}, 0 0 0 2px rgba(255, 255, 255, 0.6) inset`
-                        : `0 8px 20px -3px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.2) inset`,
-                    }}
+                    className="relative cursor-pointer active:scale-95 transition-transform duration-200"
                   >
-                    {/* Top Specular Gloss Highlight (macOS glass reflection) */}
-                    <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 via-white/10 to-transparent rounded-t-[16px] pointer-events-none" />
-
-                    {/* App Icon Glyph */}
-                    <div className="relative z-10">
-                      {item.renderIcon()}
-                    </div>
+                    <AppIcon appId={item.id} size="md" className="w-12 h-12" />
 
                     {/* Badge notification (e.g. 5 VMs, PC, AI) */}
                     {item.badge && (
                       <span
-                        className={`absolute -top-0.5 -right-0.5 px-1.5 py-0.2 ${
+                        className={`absolute -top-1 -right-1 px-1.5 py-0.2 ${
                           item.badgeColor || 'bg-red-500'
-                        } text-white text-[9px] font-black rounded-full border border-slate-950 shadow-md`}
+                        } text-white text-[9px] font-black rounded-full border border-white/60 shadow-md z-20`}
                       >
                         {item.badge}
                       </span>

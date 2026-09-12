@@ -28,9 +28,11 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 WORK_DIR="$(pwd)/iso_build_workspace"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROOTFS_DIR="${WORK_DIR}/chroot"
 IMAGE_DIR="${WORK_DIR}/image"
-OUTPUT_DIR="$(pwd)/dist-iso"
+OUTPUT_DIR="${REPO_ROOT}/dist-iso"
 ISO_NAME="inovecloud-os-debian12-amd64.iso"
 DEBIAN_MIRROR="http://deb.debian.org/debian"
 DEBIAN_SUITE="bookworm"
@@ -39,6 +41,7 @@ echo -e "${YELLOW}[1/7] Instalando ferramentas essenciais de compilação de ISO
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   debootstrap \
+  debian-archive-keyring \
   squashfs-tools \
   xorriso \
   isolinux \
@@ -51,14 +54,21 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   git \
   rsync
 
-# Clean up previous builds
+# Clean up previous builds and traps
+umount -lf "${ROOTFS_DIR}/dev/pts" 2>/dev/null || true
+umount -lf "${ROOTFS_DIR}/dev" 2>/dev/null || true
+umount -lf "${ROOTFS_DIR}/proc" 2>/dev/null || true
+umount -lf "${ROOTFS_DIR}/sys" 2>/dev/null || true
 rm -rf "${WORK_DIR}"
 mkdir -p "${ROOTFS_DIR}" "${IMAGE_DIR}" "${OUTPUT_DIR}"
 
 echo -e "${YELLOW}[2/7] Executando debootstrap para Debian 12 Bookworm minimal...${RESET}"
 debootstrap --arch=amd64 --variant=minbase "${DEBIAN_SUITE}" "${ROOTFS_DIR}" "${DEBIAN_MIRROR}"
 
-echo -e "${YELLOW}[3/7] Configurando Chroot e Repositórios Debian...${RESET}"
+echo -e "${YELLOW}[3/7] Configurando Chroot, DNS e Repositórios Debian...${RESET}"
+# Ensure DNS resolution works inside chroot
+cp /etc/resolv.conf "${ROOTFS_DIR}/etc/resolv.conf" 2>/dev/null || echo "nameserver 1.1.1.1" > "${ROOTFS_DIR}/etc/resolv.conf"
+
 cat << 'EOF' > "${ROOTFS_DIR}/etc/apt/sources.list"
 deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
 deb http://deb.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
@@ -72,7 +82,7 @@ mount --bind /proc "${ROOTFS_DIR}/proc"
 mount --bind /sys "${ROOTFS_DIR}/sys"
 
 cleanup() {
-  echo -e "${YELLOW}Desmontando sistemas de arquivos virtuais...${RESET}"
+  echo -e "${YELLOW}Desmontando sistemas de arquivos virtuais do chroot...${RESET}"
   umount -lf "${ROOTFS_DIR}/dev/pts" 2>/dev/null || true
   umount -lf "${ROOTFS_DIR}/dev" 2>/dev/null || true
   umount -lf "${ROOTFS_DIR}/proc" 2>/dev/null || true
@@ -92,8 +102,7 @@ apt-get install -y --no-install-recommends \
   linux-image-amd64 \
   live-boot \
   systemd-sysv \
-  firmware-linux-free \
-  firmware-misc-nonfree
+  firmware-linux-free
 
 # Rede, Ferramentas essenciais e Drivers de Vídeo Mesa
 apt-get install -y --no-install-recommends \
@@ -109,20 +118,17 @@ apt-get install -y --no-install-recommends \
   xwayland \
   cage \
   chromium \
-  fonts-inter \
+  fonts-dejavu-core \
+  fonts-freefont-ttf \
   fonts-noto-color-emoji \
   ca-certificates \
-  htop \
-  tmux
-
-# Instalação do Node.js LTS (v20) para servir a aplicação localmente
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
+  nodejs \
+  htop
 
 # Criar usuário 'inove' sem senha para live session
-useradd -m -s /bin/bash inove
+useradd -m -s /bin/bash inove || true
 echo "inove:inove" | chpasswd
-usermod -aG sudo,video,input,render inove
+usermod -aG sudo,video,input,render inove || true
 
 # Configurar sudo sem senha para o usuário inove
 echo "inove ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/inove-nopasswd
@@ -136,7 +142,7 @@ cat << 'HOSTS_EOF' > /etc/hosts
 HOSTS_EOF
 
 # Configurar serviço do NetworkManager
-systemctl enable NetworkManager
+systemctl enable NetworkManager || true
 
 # Criar diretório da aplicação
 mkdir -p /opt/inovecloud
@@ -147,12 +153,13 @@ rm -rf /var/lib/apt/lists/*
 CHROOT_EXEC
 
 echo -e "${YELLOW}[5/7] Copiando e compilando o InoveCloud OS para dentro da imagem...${RESET}"
-# Se a pasta dist existir, copia; caso contrário monta pacote estático
 mkdir -p "${ROOTFS_DIR}/opt/inovecloud"
-if [ -d "../dist" ]; then
-  cp -r ../dist/* "${ROOTFS_DIR}/opt/inovecloud/"
-elif [ -d "./dist" ]; then
+if [ -d "${REPO_ROOT}/dist" ] && [ -n "$(ls -A "${REPO_ROOT}/dist" 2>/dev/null)" ]; then
+  cp -r "${REPO_ROOT}/dist"/* "${ROOTFS_DIR}/opt/inovecloud/"
+elif [ -d "./dist" ] && [ -n "$(ls -A "./dist" 2>/dev/null)" ]; then
   cp -r ./dist/* "${ROOTFS_DIR}/opt/inovecloud/"
+elif [ -d "../dist" ] && [ -n "$(ls -A "../dist" 2>/dev/null)" ]; then
+  cp -r ../dist/* "${ROOTFS_DIR}/opt/inovecloud/"
 fi
 
 # Cria mini servidor HTTP em Node.js de alta performance caso sirva estático
@@ -262,6 +269,10 @@ chown inove:inove "${ROOTFS_DIR}/home/inove/.bash_profile"
 
 # Habilitar o serviço InoveCloud no boot
 chroot "${ROOTFS_DIR}" systemctl enable inovecloud.service
+
+# Desmontar explicitamente antes de gerar o SquashFS
+cleanup
+trap - EXIT
 
 echo -e "${YELLOW}[6/7] Empacotando SquashFS e preparando estrutura de Boot (GRUB EFI + BIOS)...${RESET}"
 mkdir -p "${IMAGE_DIR}/live" "${IMAGE_DIR}/boot/grub"

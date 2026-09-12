@@ -4,10 +4,10 @@ export const LAUNCHER_APPS: LauncherAppInfo[] = [
   // Infraestrutura & KVM
   {
     id: 'vn',
-    name: 'Nós Virtuais (VN)',
+    name: 'Máquinas Virtuais (KVM)',
     category: 'Infraestrutura & KVM',
-    description: 'Hypervisor KVM para rodar Ubuntu, Windows Server, Debian com GPU dedicada.',
-    badge: '5 VMs',
+    description: 'Hypervisor KVM para rodar Ubuntu, Windows 11, Debian e Alpine com GPU dedicada.',
+    badge: 'KVM/QEMU',
     badgeColor: 'bg-blue-500',
     iconName: 'Server',
     gradient: 'from-blue-600 via-indigo-600 to-indigo-800',
@@ -90,10 +90,10 @@ export const LAUNCHER_APPS: LauncherAppInfo[] = [
   // Storage & Produtividade
   {
     id: 'storage',
-    name: 'Cloud Storage & Arquivos',
+    name: 'Meus Arquivos & Storage',
     category: 'Storage & Produtividade',
-    description: 'Gestão de arquivos locais, Google Drive, Dropbox e buckets S3 com IA.',
-    badge: '4.2 TB',
+    description: 'Explorador de arquivos locais do PC, Google Drive, Dropbox, SFTP e S3.',
+    badge: 'Arquivos',
     badgeColor: 'bg-rose-500',
     iconName: 'HardDrive',
     gradient: 'from-rose-500 via-pink-600 to-purple-700',
@@ -110,13 +110,13 @@ export const LAUNCHER_APPS: LauncherAppInfo[] = [
   },
   {
     id: 'appstore',
-    name: 'App Store Hub (Umbrel)',
+    name: 'Flathub & Linux Apps',
     category: 'Storage & Produtividade',
-    description: 'Catálogo com 1-clique para Docker, Nextcloud, Ollama, Pi-hole e Home Assistant.',
-    badge: '1-Click',
-    badgeColor: 'bg-purple-500',
+    description: 'Catálogo Flathub oficial de aplicativos Linux (VS Code, Spotify, Steam, Discord).',
+    badge: 'Flathub',
+    badgeColor: 'bg-blue-600',
     iconName: 'Layers',
-    gradient: 'from-purple-500 via-violet-600 to-indigo-700',
+    gradient: 'from-blue-600 via-indigo-600 to-purple-700',
   },
   {
     id: 'aiagent',
@@ -132,13 +132,13 @@ export const LAUNCHER_APPS: LauncherAppInfo[] = [
   // Sistema & Monitoramento
   {
     id: 'settings',
-    name: 'Ajustes & Wallpapers',
+    name: 'Configurações do PC & OS',
     category: 'Sistema & Monitoramento',
-    description: 'Personalização do sistema, upload de papel de parede próprio e passthrough de GPU.',
-    badge: 'Config',
-    badgeColor: 'bg-slate-500',
+    description: 'Wi-Fi, Bluetooth, Mouse & Touchpad, Display, Som, Energia, Temas, Usuário e Acessibilidade.',
+    badge: 'OS Settings',
+    badgeColor: 'bg-red-600',
     iconName: 'Settings',
-    gradient: 'from-slate-600 via-slate-700 to-slate-900',
+    gradient: 'from-red-600 via-rose-600 to-slate-900',
   },
   {
     id: 'isobuilder',

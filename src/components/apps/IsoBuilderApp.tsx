@@ -16,11 +16,17 @@ import {
   ExternalLink,
   ShieldCheck,
   RefreshCw,
-  FolderDown
+  FolderDown,
+  Video,
+  Sparkles
 } from 'lucide-react';
 
-export const IsoBuilderApp: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'download' | 'script' | 'docker' | 'github' | 'guide'>('overview');
+interface IsoBuilderAppProps {
+  onPreviewBootVideo?: () => void;
+}
+
+export const IsoBuilderApp: React.FC<IsoBuilderAppProps> = ({ onPreviewBootVideo }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'bootvideo' | 'download' | 'script' | 'docker' | 'github' | 'guide'>('overview');
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [isSimulatingBuild, setIsSimulatingBuild] = useState(false);
   const [buildLogs, setBuildLogs] = useState<string[]>([]);
@@ -122,6 +128,16 @@ docker run --privileged --rm -v $(pwd)/dist-iso:/output inovecloud-iso-builder`;
         </div>
 
         <div className="flex items-center space-x-2">
+          {onPreviewBootVideo && (
+            <button
+              onClick={onPreviewBootVideo}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:opacity-90 text-white text-xs font-bold transition cursor-pointer shadow-lg shadow-blue-500/25 active:scale-95"
+              title="Executar vídeo de inicialização da ISO em tela cheia"
+            >
+              <Video className="w-3.5 h-3.5" />
+              <span>Vídeo de Boot da ISO</span>
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('download')}
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition cursor-pointer border border-white/10"
@@ -144,6 +160,7 @@ docker run --privileged --rm -v $(pwd)/dist-iso:/output inovecloud-iso-builder`;
       <div className="px-5 pt-3 border-b border-white/10 bg-slate-900/60 flex space-x-2 overflow-x-auto text-xs font-semibold">
         {[
           { id: 'overview', label: 'Visão Geral & Arquitetura', icon: Layers },
+          { id: 'bootvideo', label: '🎬 Vídeo de Inicialização', icon: Video },
           { id: 'download', label: 'Cadê a ISO? / Como Baixar', icon: Download },
           { id: 'script', label: 'Script Bash (build-iso.sh)', icon: Terminal },
           { id: 'docker', label: 'Compilar via Docker', icon: Server },
@@ -171,6 +188,159 @@ docker run --privileged --rm -v $(pwd)/dist-iso:/output inovecloud-iso-builder`;
 
       {/* Main Tab Content Area */}
       <div className="flex-1 p-5 overflow-y-auto space-y-6">
+        {/* BOOT VIDEO TAB */}
+        {activeTab === 'bootvideo' && (
+          <div className="space-y-6 max-w-5xl mx-auto">
+            {/* Hero Card */}
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-950/60 via-indigo-950/50 to-slate-900 border border-blue-500/30 shadow-2xl relative overflow-hidden">
+              <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>Animação Oficial de Abertura InoveCloud OS</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white tracking-tight">
+                    Sequência Cinematográfica de Boot para ISO Live
+                  </h3>
+                  <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                    Esta é a sequência de inicialização integrada que é exibida assim que a máquina liga na ISO Linux ou no ambiente Web. Segue exatamente a identidade visual do vídeo: tipografia sólida orgânica <strong>SEU SISTEMA</strong>, azul royal e ciano neon <strong>ELEGANTE PODEROSO</strong>, finalizando com a marca <strong>INOVECLOUD OS</strong> e transição suave para a área de trabalho.
+                  </p>
+                </div>
+
+                {onPreviewBootVideo && (
+                  <button
+                    onClick={onPreviewBootVideo}
+                    className="flex items-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-sm transition cursor-pointer shadow-xl shadow-blue-600/30 active:scale-95 whitespace-nowrap"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Reproduzir em Tela Cheia</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Visual Storyboard Steps */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Scene 1 */}
+              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/40 transition flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Cena 01 • 0.0s - 1.2s
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">Texture Fill</span>
+                  </div>
+                  <div className="h-28 rounded-xl bg-white flex items-center justify-center p-3 shadow-inner border border-slate-200">
+                    <span
+                      className="text-2xl font-black uppercase tracking-wider"
+                      style={{
+                        background: 'linear-gradient(135deg, #1b3a24 0%, #2e5939 30%, #3e6d42 55%, #18331f 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                    >
+                      SEU SISTEMA
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Entrada com zoom óptico sutil e corte de preenchimento em textura floresta / orgânica profunda.
+                  </p>
+                </div>
+              </div>
+
+              {/* Scene 2 */}
+              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/40 transition flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      Cena 02 • 1.2s - 2.4s
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">Electric Neon</span>
+                  </div>
+                  <div className="h-28 rounded-xl bg-white flex items-center justify-center p-3 shadow-inner border border-slate-200">
+                    <span
+                      className="text-lg font-black uppercase tracking-wide"
+                      style={{
+                        background: 'linear-gradient(90deg, #0055ff 0%, #00d2ff 40%, #0044ff 70%, #0011ff 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                    >
+                      ELEGANTE PODEROSO
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Gradiente vibrante em azul royal ultramarino com núcleo em ciano neon brilhante e glow suave.
+                  </p>
+                </div>
+              </div>
+
+              {/* Scene 3 */}
+              <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/40 transition flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      Cena 03 • 2.4s - 3.8s
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">Brand Final</span>
+                  </div>
+                  <div className="h-28 rounded-xl bg-white flex flex-col items-center justify-center p-3 shadow-inner border border-slate-200 space-y-1">
+                    <span
+                      className="text-lg font-black uppercase tracking-wide"
+                      style={{
+                        background: 'linear-gradient(90deg, #1e40af 0%, #3b82f6 25%, #ec4899 50%, #a855f7 75%, #1e1b4b 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                    >
+                      INOVECLOUD OS
+                    </span>
+                    <svg viewBox="0 0 100 70" className="w-12 h-8 text-slate-900" fill="none">
+                      <path
+                        d="M30 60 L72 60 C82 60 89 53 89 43 C89 34 82 27 73 27 C71 27 70 27.5 68 28 C65 17 56 10 45 10 C32 10 22 20 22 33 C22 35 22.5 37 23 39 C15 41 10 48 10 55 C10 63 17 60 30 60 Z"
+                        stroke="#111827"
+                        strokeWidth="7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M33 52 C27 52 22 47 22 41 C22 35 27 30 33 30 C35 30 37 30.5 38 31 C40 23 47 18 54 18 C62 18 68 23 69 31 C74 31 78 35 78 40 C78 45 74 52 68 52"
+                        stroke="#111827"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Marca oficial InoveCloud OS com o logotipo de nuvem e áudio harmônico em dó maior (chime de boot).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Technical Appliance Integration Note */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-white/10 space-y-3">
+              <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                <Monitor className="w-4 h-4 text-cyan-400" />
+                <span>Como isso é executado dentro da ISO Debian 12 Live Kiosk</span>
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Ao gravar a ISO e dar boot no computador físico ou máquina virtual, o compositor Wayland (Cage) abre diretamente o Chromium Kiosk carregando a aplicação local em <code>http://127.0.0.1:3000</code>. O vídeo de inicialização é executado de forma fluida e automática enquanto os serviços secundários do Linux (rede, drivers de áudio e rede local) terminam de subir em segundo plano.
+              </p>
+              <div className="flex items-center space-x-3 pt-2">
+                <span className="text-xs font-mono bg-black/40 px-3 py-1.5 rounded-lg border border-white/10 text-emerald-400">
+                  Boot Chime: Web Audio API Sintetizado (Harmônico)
+                </span>
+                <span className="text-xs font-mono bg-black/40 px-3 py-1.5 rounded-lg border border-white/10 text-cyan-400">
+                  Resolução: Responsiva 1080p / 4K / Ultrawide
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="space-y-6 max-w-5xl mx-auto">

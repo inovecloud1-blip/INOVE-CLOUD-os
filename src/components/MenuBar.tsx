@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Cloud,
   Wifi,
+  Bluetooth,
   ShieldCheck,
   Cpu,
   HardDrive,
@@ -19,7 +20,9 @@ import {
   Power,
   Globe,
   User,
-  LayoutGrid
+  LayoutGrid,
+  Video,
+  Disc
 } from 'lucide-react';
 import { SystemStats, AppId } from '../types';
 
@@ -32,6 +35,7 @@ interface MenuBarProps {
   isControlCenterOpen: boolean;
   onToggleLauncher?: () => void;
   isLauncherOpen?: boolean;
+  onPlayBootVideo?: () => void;
 }
 
 export const MenuBar: React.FC<MenuBarProps> = ({
@@ -43,6 +47,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   isControlCenterOpen,
   onToggleLauncher,
   isLauncherOpen,
+  onPlayBootVideo,
 }) => {
   const [time, setTime] = useState<string>('');
   const [date, setDate] = useState<string>('');
@@ -198,6 +203,15 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <div className="my-1 border-t border-white/10" />
 
                 <div className="py-1">
+                  {onPlayBootVideo && (
+                    <button
+                      onClick={() => { onPlayBootVideo(); setAppleMenuOpen(false); }}
+                      className="w-full text-left px-3 py-1.5 hover:bg-blue-600 hover:text-white flex items-center space-x-2 text-xs text-cyan-300"
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                      <span>Vídeo de Boot da ISO</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => { window.location.reload(); }}
                     className="w-full text-left px-3 py-1.5 hover:bg-blue-600 hover:text-white flex items-center space-x-2 text-xs text-amber-300"
@@ -318,9 +332,22 @@ export const MenuBar: React.FC<MenuBarProps> = ({
         </button>
 
         {/* Wi-Fi / Cloud VPC Icon */}
-        <div className="p-1 text-emerald-400" title="Conectado à VPC InoveCloud (Latência: 12ms)">
+        <button
+          onClick={() => onOpenApp('settings')}
+          className="p-1 text-emerald-400 hover:bg-white/10 rounded transition cursor-pointer"
+          title="Wi-Fi: InoveCloud-5G-Ultra (Clique para Configurar)"
+        >
           <Wifi className="w-3.5 h-3.5" />
-        </div>
+        </button>
+
+        {/* Bluetooth Icon */}
+        <button
+          onClick={() => onOpenApp('settings')}
+          className="p-1 text-indigo-400 hover:bg-white/10 rounded transition cursor-pointer"
+          title="Bluetooth: 3 Dispositivos Conectados (Clique para Configurar)"
+        >
+          <Bluetooth className="w-3.5 h-3.5" />
+        </button>
 
         {/* User Profile Quick Access */}
         <button

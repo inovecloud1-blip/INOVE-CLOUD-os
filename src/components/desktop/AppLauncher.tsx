@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { AppId, AppCategory, LauncherAppInfo } from '../../types';
 import { LAUNCHER_APPS, DEFAULT_DOCK_PINNED } from '../../data/launcherApps';
+import { AppIcon } from './AppIcon';
 
 interface AppLauncherProps {
   isOpen: boolean;
@@ -257,9 +258,9 @@ export const AppLauncher: React.FC<AppLauncherProps> = ({
                   <div className="flex items-start justify-between mb-3">
                     <div
                       onClick={() => handleAppClick(app.id)}
-                      className={`w-13 h-13 rounded-2xl bg-gradient-to-tr ${app.gradient} flex items-center justify-center shadow-lg cursor-pointer group-hover:scale-105 transition`}
+                      className="cursor-pointer group-hover:scale-105 transition"
                     >
-                      {renderAppIcon(app.iconName, 'w-6 h-6 text-white')}
+                      <AppIcon appId={app.id} size="lg" className="w-13 h-13" />
                     </div>
 
                     <div className="flex items-center space-x-1.5">

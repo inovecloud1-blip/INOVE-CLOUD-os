@@ -40,6 +40,7 @@ import { UserApp } from './components/apps/UserApp';
 import { IsoBuilderApp } from './components/apps/IsoBuilderApp';
 import { LinuxPediaApp } from './components/apps/LinuxPediaApp';
 import { AppLauncher } from './components/desktop/AppLauncher';
+import { BootVideoSplash } from './components/desktop/BootVideoSplash';
 import { DEFAULT_DESKTOP_PINNED, DEFAULT_DOCK_PINNED } from './data/launcherApps';
 
 import {
@@ -93,6 +94,22 @@ export default function App() {
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
+  // Boot video animation state (plays on ISO boot or on manual preview)
+  const [isBootVideoActive, setIsBootVideoActive] = useState<boolean>(() => {
+    // Check if user has just booted or if requested via URL param ?boot=1
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('boot') === '1') return true;
+      const booted = sessionStorage.getItem('inovecloud_boot_shown');
+      if (!booted) {
+        sessionStorage.setItem('inovecloud_boot_shown', 'true');
+        return true;
+      }
+    } catch (e) {
+      // fallback
+    }
+    return false;
+  });
 
   // Desktop Pinned Apps State (persisted via localStorage)
   const [desktopPinnedApps, setDesktopPinnedApps] = useState<AppId[]>(() => {
@@ -648,6 +665,7 @@ export default function App() {
         isControlCenterOpen={isControlCenterOpen}
         onToggleLauncher={() => setIsLauncherOpen(!isLauncherOpen)}
         isLauncherOpen={isLauncherOpen}
+        onPlayBootVideo={() => setIsBootVideoActive(true)}
       />
 
       {/* Desktop Canvas & Pinned Widgets (Matches UmbrelOS Style) */}
