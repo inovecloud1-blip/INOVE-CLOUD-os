@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # InoveCloud OS - Automated Debian 12 Live ISO Builder
-# Kiosk Appliance: Boots directly into InoveCloud OS Launcher via Wayland (Cage)
+# Kiosk Appliance: Boots directly into InoveCloud OS Launcher via X11 + Openbox
 # ==============================================================================
 set -euo pipefail
 
@@ -90,7 +90,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo -e "${YELLOW}[4/7] Instalando Kernel, Cage (Wayland Kiosk), Chromium e Drivers dentro da ISO...${RESET}"
+echo -e "${YELLOW}[4/7] Instalando Kernel, Xorg, Openbox, Chromium e Drivers dentro da ISO...${RESET}"
 chroot "${ROOTFS_DIR}" /bin/bash << 'CHROOT_EXEC'
 set -euo pipefail
 
@@ -104,7 +104,7 @@ apt-get install -y --no-install-recommends \
   systemd-sysv \
   firmware-linux-free
 
-# Rede, Ferramentas essenciais e Drivers de Vídeo Mesa
+# Rede, Servidor X11, Openbox e Chromium
 apt-get install -y --no-install-recommends \
   network-manager \
   iproute2 \
@@ -112,11 +112,10 @@ apt-get install -y --no-install-recommends \
   wget \
   sudo \
   pciutils \
-  mesa-va-drivers \
-  mesa-vulkan-drivers \
-  libgl1-mesa-dri \
-  xwayland \
-  cage \
+  xorg \
+  xserver-xorg \
+  xinit \
+  openbox \
   chromium \
   fonts-dejavu-core \
   fonts-freefont-ttf \
@@ -162,7 +161,7 @@ elif [ -d "../dist" ] && [ -n "$(ls -A "../dist" 2>/dev/null)" ]; then
   cp -r ../dist/* "${ROOTFS_DIR}/opt/inovecloud/"
 fi
 
-# Cria mini servidor HTTP em Node.js de alta performance caso sirva estático
+# Cria mini servidor HTTP em Node.js de alta performance
 cat << 'NODE_SRV' > "${ROOTFS_DIR}/opt/inovecloud/server.js"
 const http = require('http');
 const fs = require('fs');
@@ -229,20 +228,24 @@ RestartSec=3
 WantedBy=multi-user.target
 SERVICE_EOF
 
-# Configurar inicialização do Wayland Cage em modo Kiosk na TTY1
-cat << 'CAGE_LAUNCHER' > "${ROOTFS_DIR}/usr/local/bin/inovecloud-kiosk"
+# Configurar o script do X11 Kiosk
+cat << 'XINIT_LAUNCHER' > "${ROOTFS_DIR}/home/inove/.xinitrc"
 #!/usr/bin/env bash
-# Esperar o servidor local responder
+# Desativar economia de energia de tela
+xset s off
+xset -dpms
+xset s noblank
+
+# Esperar o servidor Node.js responder
 until curl -s http://127.0.0.1:3000 > /dev/null 2>&1; do
   sleep 0.5
 done
 
-# Variaveis de ambiente para compatibilidade com VirtualBox / Mesa / Wayland
-export WLR_NO_HARDWARE_CURSORS=1
-export LIBGL_ALWAYS_SOFTWARE=1
+# Iniciar o gerenciador de janelas Openbox em segundo plano
+openbox &
 
-# Executa Cage Wayland com Chromium em tela cheia (Kiosk Mode)
-exec /usr/bin/cage -- /usr/bin/chromium \
+# Executar Chromium em Tela Cheia no modo Kiosk
+exec chromium \
   --kiosk \
   --no-sandbox \
   --noerrdialogs \
@@ -250,13 +253,13 @@ exec /usr/bin/cage -- /usr/bin/chromium \
   --disable-session-crashed-bubble \
   --disable-translate \
   --check-for-update-interval=31536000 \
-  --ozone-platform=wayland \
-  --enable-features=UseOzonePlatform \
   --app=http://127.0.0.1:3000
-CAGE_LAUNCHER
-chmod +x "${ROOTFS_DIR}/usr/local/bin/inovecloud-kiosk"
+XINIT_LAUNCHER
 
-# Configurar auto-login na TTY1 para iniciar o Cage Kiosk
+chroot "${ROOTFS_DIR}" chown inove:inove /home/inove/.xinitrc
+chroot "${ROOTFS_DIR}" chmod +x /home/inove/.xinitrc
+
+# Configurar auto-login na TTY1 para iniciar o X11 diretamente
 mkdir -p "${ROOTFS_DIR}/etc/systemd/system/getty@tty1.service.d"
 cat << 'GETTY_OVERRIDE' > "${ROOTFS_DIR}/etc/systemd/system/getty@tty1.service.d/override.conf"
 [Service]
@@ -264,12 +267,13 @@ ExecStart=
 ExecStart=-/sbin/agetty --autologin inove --noclear %I $TERM
 GETTY_OVERRIDE
 
-# Configurar .bash_profile do usuário 'inove' para subir o Kiosk se estiver na TTY1
-cat << 'BASH_PROFILE' >> "${ROOTFS_DIR}/home/inove/.bash_profile"
-if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
-  exec /usr/local/bin/inovecloud-kiosk
+# Configurar .bash_profile para iniciar o servidor gráfico X11 no boot
+cat << 'BASH_PROFILE' > "${ROOTFS_DIR}/home/inove/.bash_profile"
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+  exec startx
 fi
 BASH_PROFILE
+
 chroot "${ROOTFS_DIR}" chown inove:inove /home/inove/.bash_profile
 
 # Habilitar o serviço InoveCloud no boot
@@ -286,7 +290,7 @@ mkdir -p "${IMAGE_DIR}/live" "${IMAGE_DIR}/boot/grub"
 cp "${ROOTFS_DIR}/boot"/vmlinuz-* "${IMAGE_DIR}/live/vmlinuz"
 cp "${ROOTFS_DIR}/boot"/initrd.img-* "${IMAGE_DIR}/live/initrd"
 
-# Criar o SquashFS comprimido com XZ (alta compressão)
+# Criar o SquashFS comprimido com XZ
 mksquashfs "${ROOTFS_DIR}" "${IMAGE_DIR}/live/filesystem.squashfs" \
   -comp xz -wildcards \
   -e "proc/*" "sys/*" "dev/*" "tmp/*"
@@ -321,11 +325,6 @@ grub-mkrescue -o "${OUTPUT_DIR}/${ISO_NAME}" "${IMAGE_DIR}"
 echo -e "${GREEN}${BOLD}"
 echo "================================================================"
 echo "    SUCESSO! ISO GERADA COM ÊXITO:                             "
-echo "    Arquivo: ${OUTPUT_DIR}/${ISO_NAME}                         "
+echo "    Arquivo: ${OUTPUT_DIR}/${ISO_NAME}                          "
 echo "================================================================"
 echo -e "${RESET}"
-echo "Como testar:"
-echo "1. No VirtualBox ou Proxmox: crie uma VM com 2GB RAM e aponte esta ISO."
-echo "2. No Pen Drive real: use 'dd' no Linux ou grave com BalenaEtcher/Rufus no Windows:"
-echo "   sudo dd if=${OUTPUT_DIR}/${ISO_NAME} of=/dev/sdX bs=4M status=progress oflag=sync"
-echo ""
