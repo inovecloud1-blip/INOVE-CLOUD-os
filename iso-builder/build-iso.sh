@@ -237,9 +237,14 @@ until curl -s http://127.0.0.1:3000 > /dev/null 2>&1; do
   sleep 0.5
 done
 
+# Variaveis de ambiente para compatibilidade com VirtualBox / Mesa / Wayland
+export WLR_NO_HARDWARE_CURSORS=1
+export LIBGL_ALWAYS_SOFTWARE=1
+
 # Executa Cage Wayland com Chromium em tela cheia (Kiosk Mode)
 exec /usr/bin/cage -- /usr/bin/chromium \
   --kiosk \
+  --no-sandbox \
   --noerrdialogs \
   --disable-infobars \
   --disable-session-crashed-bubble \
